@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(1,3,-10));		//to change the position of camera
+	application.AddTypicalCamera(core::vector3df(3,7,-10));		//to change the position of camera
 	application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 35, 512, video::SColorf(0.6,0.8,1));
  
 	// Create all the rigid bodies.
@@ -145,11 +145,11 @@ int main(int argc, char* argv[])
 
 	// optional, attach a texture for better visualization
 	ChSharedPtr<ChTexture> mtextureconcrete(new ChTexture());
-    mtextureconcrete->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtextureconcrete->SetTextureFilename(GetChronoDataFile("grass.png"));
 	tableBody->AddAsset(mtextureconcrete);
 
 
-	// Create the constraint between ground and table. If no earthquacke, it just
+	// Create the constraint between ground and table. If no earthquake, it just
 	// keeps the table in position.
 
 	ChSharedPtr<ChLinkLockLock> linkEarthquake(new ChLinkLockLock);
@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
 
 			//create a texture for the bodyTop
 			ChSharedPtr<ChTexture> mtextureebodyTop(new ChTexture());
-			mtextureebodyTop->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
+			mtextureebodyTop->SetTextureFilename(GetChronoDataFile("oldconcrete.jpg"));
 			bodyTop->AddAsset(mtextureebodyTop);
 		}
 
@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
 
 			//create a texture for the bodyTop
 			ChSharedPtr<ChTexture> mtexturebodyTop(new ChTexture());
-			mtexturebodyTop->SetTextureFilename(GetChronoDataFile("cubetexture_pinkwhite.png"));
+			mtexturebodyTop->SetTextureFilename(GetChronoDataFile("brick.jpg"));
 			bodyTop->AddAsset(mtexturebodyTop);
 		}
 	}
