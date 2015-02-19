@@ -92,12 +92,14 @@ void create_column(
 	ChCoordsys<> cog_column(ChVector<>(0, col_base+col_height/2, 0));
 	ChCoordsys<> abs_cog_column = cog_column >> base_pos;
 	bodyColumn->SetCoord( abs_cog_column );
-	mphysicalSystem.Add(bodyColumn);
+	
 
 	//create a texture for the column
 	ChSharedPtr<ChTexture> mtexturecolumns(new ChTexture());
 	mtexturecolumns->SetTextureFilename(GetChronoDataFile("cubetexture_pinkwhite.png"));
 	bodyColumn->AddAsset(mtexturecolumns);
+
+	mphysicalSystem.Add(bodyColumn);
 
 	
 }
@@ -116,7 +118,7 @@ int main(int argc, char* argv[])
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(3,7,-10));		//to change the position of camera
+	application.AddTypicalCamera(core::vector3df(3,12,-10));		//to change the position of camera
 	application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 35, 512, video::SColorf(0.6,0.8,1));
  
 	// Create all the rigid bodies.
@@ -139,7 +141,7 @@ int main(int argc, char* argv[])
 	// Create the table that is subject to earthquake
 
 	ChSharedPtr<ChBodyEasyBox> tableBody(new ChBodyEasyBox( 17,1,15,  3000,	true, true));
-	tableBody->SetPos( ChVector<>(0,-0.5,0) );
+	tableBody->SetPos( ChVector<>(4.05,-0.5,0) );
 
 	mphysicalSystem.Add(tableBody);
 
@@ -447,7 +449,7 @@ int main(int argc, char* argv[])
 		double density = 3000;
 
 
-		//to create "big" columns
+	//to create "big" columns
 
 		//create column1
 
@@ -630,6 +632,98 @@ int main(int argc, char* argv[])
 		//create pedestal3
 		ChCoordsys<> base_position3p(ChVector<>(2 * spacing, 4.7, 0));		//coordinate of the third pedestal of the "little" columns
 		create_column(mphysicalSystem, base_position3p, 100, 0.175, 0.25, 0.20, density);
+
+
+	//to create "little" columns
+
+		//create little column1
+
+		ChCoordsys<> base_position1ll(ChVector<>(0 * spacing, 4.9, 0));	//coordinate of the first group of "little" columns, bottom
+		create_column(mphysicalSystem, base_position1ll, 100, 0.164, 0.175, 1.14, density);
+
+		ChCoordsys<> base_position1lm(ChVector<>(0 * spacing, 6.04, 0));
+		create_column(mphysicalSystem, base_position1lm, 100, 0.15, 0.164, 1.41, density);		//coordinate of the first group of "little" columns, middle
+
+		
+
+		//create little column2
+
+		ChCoordsys<> base_position2ll(ChVector<>(1 * spacing, 4.9, 0));	//coordinate of the second group of "little" columns, bottom
+		create_column(mphysicalSystem, base_position2ll, 100, 0.171, 0.175, 0.48, density);
+
+		ChCoordsys<> base_position2lm(ChVector<>(1 * spacing, 5.38, 0));
+		create_column(mphysicalSystem, base_position2lm, 100, 0.157, 0.171, 1.44, density);		//coordinate of the second group of "little" columns, middle
+
+		ChCoordsys<> base_position2lh(ChVector<>(1 * spacing, 6.82, 0));
+		create_column(mphysicalSystem, base_position2lh, 100, 0.150, 0.157, 0.63, density);		//coordinate of the second group of "little" columns, top
+
+
+		//create little column3
+
+		ChCoordsys<> base_position3ll(ChVector<>(2 * spacing, 4.9, 0));	//coordinate of the third group of "little" columns, bottom
+		create_column(mphysicalSystem, base_position3ll, 100, 0.168, 0.175, 0.69, density);
+
+		ChCoordsys<> base_position3lm(ChVector<>(2 * spacing, 5.59, 0));
+		create_column(mphysicalSystem, base_position3lm, 100, 0.15, 0.168, 1.86, density);		//coordinate of the third group of "little" columns, middle
+
+		
+		//to create capitals of little columns
+
+		//create capital1
+
+		ChSharedPtr<ChBodyEasyBox> capitall1(new ChBodyEasyBox(
+			0.45, 0.25, 0.45, // x y z sizes
+			density,
+			true,
+			true));
+
+		ChCoordsys<> cog_capitall1(ChVector<>(0, 7.575, 0));
+		capitall1->SetCoord(cog_capitall1);
+
+		mphysicalSystem.Add(capitall1);
+
+		//create a texture for the capital1
+		ChSharedPtr<ChTexture> mtexturecapitall1(new ChTexture());
+		mtexturecapitall1->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		capitall1->AddAsset(mtexturecapitall1);
+
+
+		//create capital2
+
+		ChSharedPtr<ChBodyEasyBox> capitall2(new ChBodyEasyBox(
+			0.45, 0.25, 0.45, // x y z sizes
+			density,
+			true,
+			true));
+
+		ChCoordsys<> cog_capitall2(ChVector<>(spacing, 7.575, 0));
+		capitall2->SetCoord(cog_capitall2);
+
+		mphysicalSystem.Add(capitall2);
+
+		//create a texture for the capital2
+		ChSharedPtr<ChTexture> mtexturecapitall2(new ChTexture());
+		mtexturecapitall2->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		capitall2->AddAsset(mtexturecapitall2);
+
+
+		//create capital3
+
+		ChSharedPtr<ChBodyEasyBox> capitall3(new ChBodyEasyBox(
+			0.45, 0.25, 0.45, // x y z sizes
+			density,
+			true,
+			true));
+
+		ChCoordsys<> cog_capitall3(ChVector<>(2 * spacing, 7.575, 0));
+		capitall3->SetCoord(cog_capitall3);
+
+		mphysicalSystem.Add(capitall3);
+
+		//create a texture for the capital3
+		ChSharedPtr<ChTexture> mtexturecapitall3(new ChTexture());
+		mtexturecapitall3->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		capitall3->AddAsset(mtexturecapitall3);
 
 		
 		/*for (int icol = 0; icol <3; ++icol)
