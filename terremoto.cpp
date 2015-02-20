@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(3,12,-10));		//to change the position of camera
+	application.AddTypicalCamera(core::vector3df(1,1,-5), core::vector3df(3,3,0));		//to change the position of camera
 	application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
  
 	// Create a shared material surface used by columns etc.
