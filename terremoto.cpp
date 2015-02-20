@@ -286,7 +286,7 @@ int main(int argc, char* argv[])
 
 		double spacing = 2.2;
 		double density = 3000;
-
+		int nedges=10;
 
 		//to create pedestals
 
@@ -353,37 +353,37 @@ int main(int argc, char* argv[])
 		//create column1
 
 		ChCoordsys<> base_position1l(ChVector<>(0 * spacing, 0.1, 0));	//coordinate of the first group of columns, bottom
-		create_column(mphysicalSystem, base_position1l, 100, 0.283, 0.30, 0.95, density);
+		create_column(mphysicalSystem, base_position1l, nedges, 0.283, 0.30, 0.95, density);
 
 		ChCoordsys<> base_position1m(ChVector<>(0 * spacing, 1.05, 0));
-		create_brickcolumn(mphysicalSystem, base_position1m, 100, 0.251, 0.283, 1.9, density);		//coordinate of the first group of columns, middle
+		create_brickcolumn(mphysicalSystem, base_position1m, nedges, 0.251, 0.283, 1.9, density);		//coordinate of the first group of columns, middle
 
 		ChCoordsys<> base_position1h(ChVector<>(0 * spacing, 2.95, 0));
-		create_column(mphysicalSystem, base_position1h, 100, 0.25, 0.251, 0.30, density);		//coordinate of the first group of columns, top
-
+		plot_brick_1 = create_column(mphysicalSystem, base_position1h, nedges, 0.25, 0.251, 0.30, density);		//coordinate of the first group of columns, top
+		// NOTE!!!!! the "plot_brick_1" points to this created column chunk, and plot_brick_1 is the one that will be plotted!!
 
 		//create column2
 
 		ChCoordsys<> base_position2l(ChVector<>(1 * spacing, 0.1, 0));	//coordinate of the second group of columns, bottom
-		create_column(mphysicalSystem, base_position2l, 100, 0.293, 0.30, 0.32, density);
+		create_column(mphysicalSystem, base_position2l, nedges, 0.293, 0.30, 0.32, density);
 
 		ChCoordsys<> base_position2m(ChVector<>(1 * spacing, 0.42, 0));
-		create_brickcolumn(mphysicalSystem, base_position2m, 100, 0.266, 0.293, 1.66, density);		//coordinate of the second group of columns, middle
+		create_brickcolumn(mphysicalSystem, base_position2m, nedges, 0.266, 0.293, 1.66, density);		//coordinate of the second group of columns, middle
 
 		ChCoordsys<> base_position2h(ChVector<>(1 * spacing, 2.08, 0));
-		create_column(mphysicalSystem, base_position2h, 100, 0.25, 0.266, 1.17, density);		//coordinate of the second group of columns, top
+		create_column(mphysicalSystem, base_position2h, nedges, 0.25, 0.266, 1.17, density);		//coordinate of the second group of columns, top
 
 
 		//create column3
 
 		ChCoordsys<> base_position3l(ChVector<>(2 * spacing, 0.1, 0));	//coordinate of the third group of columns, bottom
-		create_column(mphysicalSystem, base_position3l, 100, 0.285, 0.30, 1.35, density);
+		create_column(mphysicalSystem, base_position3l, nedges, 0.285, 0.30, 1.35, density);
 
 		ChCoordsys<> base_position3m(ChVector<>(2 * spacing, 1.45, 0));
-		create_brickcolumn(mphysicalSystem, base_position3m, 100, 0.251, 0.285, 1.55, density);		//coordinate of the third group of columns, middle
+		create_brickcolumn(mphysicalSystem, base_position3m, nedges, 0.251, 0.285, 1.55, density);		//coordinate of the third group of columns, middle
 
 		ChCoordsys<> base_position3h(ChVector<>(2 * spacing, 3, 0));
-		create_column(mphysicalSystem, base_position3h, 100, 0.25, 0.251, 0.25, density);		//coordinate of the third group of columns, top
+		create_column(mphysicalSystem, base_position3h, nedges, 0.25, 0.251, 0.25, density);		//coordinate of the third group of columns, top
 
 
 
@@ -519,56 +519,56 @@ int main(int argc, char* argv[])
 	{
 		double spacing = 2.7;
 		double density = 3000;
-
+		int nedges=10;
 
 	//to create "big" columns
 
 		//create column1
 
 		ChCoordsys<> base_position1l(ChVector<>(0 * spacing, 0, 0));	//coordinate of the first group of columns, bottom
-		create_column(mphysicalSystem, base_position1l, 100, 0.284, 0.30, 0.97, density);
+		create_column(mphysicalSystem, base_position1l, nedges, 0.284, 0.30, 0.97, density);
 
 		ChCoordsys<> base_position1m(ChVector<>(0 * spacing, 0.97, 0));
-		create_column(mphysicalSystem, base_position1m, 100, 0.265, 0.284, 1.13, density);		//coordinate of the first group of columns, middle
+		create_column(mphysicalSystem, base_position1m, nedges, 0.265, 0.284, 1.13, density);		//coordinate of the first group of columns, middle
 
 		ChCoordsys<> base_position1h(ChVector<>(0 * spacing, 2.1, 0));
-		create_column(mphysicalSystem, base_position1h, 100, 0.25, 0.265, 1.15, density);		//coordinate of the first group of columns, top
+		create_column(mphysicalSystem, base_position1h, nedges, 0.25, 0.265, 1.15, density);		//coordinate of the first group of columns, top
 
 
 		//create column2
 
 		ChCoordsys<> base_position2l(ChVector<>(1 * spacing, 0, 0));	//coordinate of the second group of columns, bottom
-		create_column(mphysicalSystem, base_position2l, 100, 0.283, 0.30, 1.05, density);
+		create_column(mphysicalSystem, base_position2l, nedges, 0.283, 0.30, 1.05, density);
 
 		ChCoordsys<> base_position2m(ChVector<>(1 * spacing, 1.05, 0));
-		create_column(mphysicalSystem, base_position2m, 100, 0.267, 0.283, 0.95, density);		//coordinate of the second group of columns, middle
+		create_column(mphysicalSystem, base_position2m, nedges, 0.267, 0.283, 0.95, density);		//coordinate of the second group of columns, middle
 
 		ChCoordsys<> base_position2h(ChVector<>(1 * spacing, 2, 0));
-		create_column(mphysicalSystem, base_position2h, 100, 0.25, 0.267, 1.25, density);		//coordinate of the second group of columns, top
+		create_column(mphysicalSystem, base_position2h, nedges, 0.25, 0.267, 1.25, density);		//coordinate of the second group of columns, top
 
 
 		//create column3
 
 		ChCoordsys<> base_position3l(ChVector<>(2 * spacing, 0, 0));	//coordinate of the third group of columns, bottom
-		create_column(mphysicalSystem, base_position3l, 100, 0.284, 0.30, 0.95, density);
+		create_column(mphysicalSystem, base_position3l, nedges, 0.284, 0.30, 0.95, density);
 
 		ChCoordsys<> base_position3m(ChVector<>(2 * spacing, 0.95, 0));
-		create_column(mphysicalSystem, base_position3m, 100, 0.264, 0.284, 1.20, density);		//coordinate of the third group of columns, middle
+		create_column(mphysicalSystem, base_position3m, nedges, 0.264, 0.284, 1.20, density);		//coordinate of the third group of columns, middle
 
 		ChCoordsys<> base_position3h(ChVector<>(2 * spacing, 2.15, 0));
-		create_column(mphysicalSystem, base_position3h, 100, 0.25, 0.264, 1.1, density);		//coordinate of the third group of columns, top
+		create_column(mphysicalSystem, base_position3h, nedges, 0.25, 0.264, 1.1, density);		//coordinate of the third group of columns, top
 
 
 		//create column4
 
 		ChCoordsys<> base_position4l(ChVector<>(3 * spacing, 0, 0));	//coordinate of the fourth group of columns, bottom
-		create_column(mphysicalSystem, base_position4l, 100, 0.278, 0.30, 1.33, density);
+		create_column(mphysicalSystem, base_position4l, nedges, 0.278, 0.30, 1.33, density);
 
 		ChCoordsys<> base_position4m(ChVector<>(3 * spacing, 1.33, 0));
-		create_column(mphysicalSystem, base_position4m, 100, 0.264, 0.278, 0.85, density);		//coordinate of the fourth group of columns, middle
+		create_column(mphysicalSystem, base_position4m, nedges, 0.264, 0.278, 0.85, density);		//coordinate of the fourth group of columns, middle
 
 		ChCoordsys<> base_position4h(ChVector<>(3 * spacing, 2.18, 0));
-		create_column(mphysicalSystem, base_position4h, 100, 0.25, 0.264, 1.07, density);		//coordinate of the fourth group of columns, top
+		create_column(mphysicalSystem, base_position4h, nedges, 0.25, 0.264, 1.07, density);		//coordinate of the fourth group of columns, top
 
 
 	//to create capitals
@@ -694,16 +694,16 @@ int main(int argc, char* argv[])
 
 		//create pedestal1
 		ChCoordsys<> base_position1p(ChVector<>(0 * spacing, 4.7, 0));		//coordinate of the first pedestal of the "little" columns
-		create_column(mphysicalSystem, base_position1p, 100, 0.175, 0.25, 0.20, density);
+		create_column(mphysicalSystem, base_position1p, nedges, 0.175, 0.25, 0.20, density);
 
 
 		//create pedestal2
 		ChCoordsys<> base_position2p(ChVector<>(1 * spacing, 4.7, 0));		//coordinate of the second pedestal of the "little" columns
-		create_column(mphysicalSystem, base_position2p, 100, 0.175, 0.25, 0.20, density);
+		create_column(mphysicalSystem, base_position2p, nedges, 0.175, 0.25, 0.20, density);
 
 		//create pedestal3
 		ChCoordsys<> base_position3p(ChVector<>(2 * spacing, 4.7, 0));		//coordinate of the third pedestal of the "little" columns
-		create_column(mphysicalSystem, base_position3p, 100, 0.175, 0.25, 0.20, density);
+		create_column(mphysicalSystem, base_position3p, nedges, 0.175, 0.25, 0.20, density);
 
 
 	//to create "little" columns
@@ -711,32 +711,32 @@ int main(int argc, char* argv[])
 		//create little column1
 
 		ChCoordsys<> base_position1ll(ChVector<>(0 * spacing, 4.9, 0));	//coordinate of the first group of "little" columns, bottom
-		create_column(mphysicalSystem, base_position1ll, 100, 0.164, 0.175, 1.14, density);
+		create_column(mphysicalSystem, base_position1ll, nedges, 0.164, 0.175, 1.14, density);
 
 		ChCoordsys<> base_position1lm(ChVector<>(0 * spacing, 6.04, 0));
-		create_column(mphysicalSystem, base_position1lm, 100, 0.15, 0.164, 1.41, density);		//coordinate of the first group of "little" columns, middle
-
+		plot_brick_1 = create_column(mphysicalSystem, base_position1lm, nedges, 0.15, 0.164, 1.41, density);		//coordinate of the first group of "little" columns, middle
+		// NOTE!!!!! the "plot_brick_1" points to this created column chunk, and plot_brick_1 is the one that will be plotted!!
 		
 
 		//create little column2
 
 		ChCoordsys<> base_position2ll(ChVector<>(1 * spacing, 4.9, 0));	//coordinate of the second group of "little" columns, bottom
-		create_column(mphysicalSystem, base_position2ll, 100, 0.171, 0.175, 0.48, density);
+		create_column(mphysicalSystem, base_position2ll, nedges, 0.171, 0.175, 0.48, density);
 
 		ChCoordsys<> base_position2lm(ChVector<>(1 * spacing, 5.38, 0));
-		create_column(mphysicalSystem, base_position2lm, 100, 0.157, 0.171, 1.44, density);		//coordinate of the second group of "little" columns, middle
+		create_column(mphysicalSystem, base_position2lm, nedges, 0.157, 0.171, 1.44, density);		//coordinate of the second group of "little" columns, middle
 
 		ChCoordsys<> base_position2lh(ChVector<>(1 * spacing, 6.82, 0));
-		create_column(mphysicalSystem, base_position2lh, 100, 0.150, 0.157, 0.63, density);		//coordinate of the second group of "little" columns, top
+		create_column(mphysicalSystem, base_position2lh, nedges, 0.150, 0.157, 0.63, density);		//coordinate of the second group of "little" columns, top
 
 
 		//create little column3
 
 		ChCoordsys<> base_position3ll(ChVector<>(2 * spacing, 4.9, 0));	//coordinate of the third group of "little" columns, bottom
-		create_column(mphysicalSystem, base_position3ll, 100, 0.168, 0.175, 0.69, density);
+		create_column(mphysicalSystem, base_position3ll, nedges, 0.168, 0.175, 0.69, density);
 
 		ChCoordsys<> base_position3lm(ChVector<>(2 * spacing, 5.59, 0));
-		create_column(mphysicalSystem, base_position3lm, 100, 0.15, 0.168, 1.86, density);		//coordinate of the third group of "little" columns, middle
+		create_column(mphysicalSystem, base_position3lm, nedges, 0.15, 0.168, 1.86, density);		//coordinate of the third group of "little" columns, middle
 
 		
 		//to create capitals of little columns
