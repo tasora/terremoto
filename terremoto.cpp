@@ -56,8 +56,8 @@ ChSharedPtr<ChMaterialSurface> mmat;
 	// Utility function. Create a tapered column as a faceted convex hull.
 	// For convex hulls, you just need to build a vector of points, it does not matter the order,
 	// because they will be considered 'wrapped' in a convex hull anyway.
-  
-void create_column(
+ 
+ChSharedPtr<ChBody> create_column(
 		ChSystem& mphysicalSystem, 
 		ChCoordsys<> base_pos, 
 		int    col_nedges= 10,
@@ -105,10 +105,10 @@ void create_column(
 
 	mphysicalSystem.Add(bodyColumn);
 
-	
+	return bodyColumn;
 }
 
-void create_brickcolumn(
+ChSharedPtr<ChBody> create_brickcolumn(
 	ChSystem& mphysicalSystem,
 	ChCoordsys<> base_pos,
 	int    col_nedges = 10,
@@ -154,6 +154,7 @@ void create_brickcolumn(
 
 	bodyColumn->SetMaterialSurface(mmat);
 
+	return bodyColumn;
 
 }
    
