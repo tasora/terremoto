@@ -277,6 +277,13 @@ int main(int argc, char* argv[])
 	mphysicalSystem.Add(linkEarthquake);
 
 
+	// Pointers to some objects that will be plotted, for future use.
+	ChSharedPtr<ChBody> plot_brick_1;
+	ChSharedPtr<ChBody> plot_table;
+
+	plot_table = tableBody; // others will be hooked later.
+
+
 	// Create the elements of the model
 
 
