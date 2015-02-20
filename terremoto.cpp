@@ -51,6 +51,8 @@ using namespace io;
 using namespace gui; 
 
 
+ChSharedPtr<ChMaterialSurface> mmat;
+
 	// Utility function. Create a tapered column as a faceted convex hull.
 	// For convex hulls, you just need to build a vector of points, it does not matter the order,
 	// because they will be considered 'wrapped' in a convex hull anyway.
@@ -98,6 +100,8 @@ void create_column(
 	ChSharedPtr<ChTexture> mtexturecolumns(new ChTexture());
 	mtexturecolumns->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 	bodyColumn->AddAsset(mtexturecolumns);
+
+	bodyColumn->SetMaterialSurface(mmat);
 
 	mphysicalSystem.Add(bodyColumn);
 
@@ -148,7 +152,7 @@ void create_brickcolumn(
 	mtexturecolumns->SetTextureFilename(GetChronoDataFile("orange.png"));
 	bodyColumn->AddAsset(mtexturecolumns);
 
-	
+	bodyColumn->SetMaterialSurface(mmat);
 
 
 }
@@ -170,6 +174,14 @@ int main(int argc, char* argv[])
 	application.AddTypicalCamera(core::vector3df(3,12,-10));		//to change the position of camera
 	application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
  
+	// Create a shared material surface used by columns etc.
+	mmat = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+	mmat->SetFriction(0.6);
+	//mmat->SetSpinningFriction(0.01);
+	//mmat->SetRollingFriction(0.01);
+	mmat->SetCompliance(0.00000002);
+	mmat->SetDampingF(1.5);
+
 	// Create all the rigid bodies.
 
 	// Create a floor that is fixed (that is used also to represent the aboslute reference)
