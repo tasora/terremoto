@@ -749,7 +749,7 @@ int main(int argc, char* argv[])
 			true,
 			true));
 
-		ChCoordsys<> cog_capitall1(ChVector<>(0, 7.575, 0));
+		ChCoordsys<> cog_capitall1(ChVector<>(0, 7.595, 0));
 		capitall1->SetCoord(cog_capitall1);
 
 		mphysicalSystem.Add(capitall1);
@@ -787,7 +787,7 @@ int main(int argc, char* argv[])
 			true,
 			true));
 
-		ChCoordsys<> cog_capitall3(ChVector<>(2 * spacing, 7.575, 0));
+		ChCoordsys<> cog_capitall3(ChVector<>(2 * spacing, 7.615, 0));
 		capitall3->SetCoord(cog_capitall3);
 
 		mphysicalSystem.Add(capitall3);
