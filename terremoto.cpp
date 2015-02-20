@@ -96,12 +96,61 @@ void create_column(
 
 	//create a texture for the column
 	ChSharedPtr<ChTexture> mtexturecolumns(new ChTexture());
-	mtexturecolumns->SetTextureFilename(GetChronoDataFile("cubetexture_pinkwhite.png"));
+	mtexturecolumns->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 	bodyColumn->AddAsset(mtexturecolumns);
 
 	mphysicalSystem.Add(bodyColumn);
 
 	
+}
+
+void create_brickcolumn(
+	ChSystem& mphysicalSystem,
+	ChCoordsys<> base_pos,
+	int    col_nedges = 10,
+	double col_radius_hi = 0.45,
+	double col_radius_lo = 0.5,
+	double col_height = 6,
+	double col_density = 3000)
+{
+
+	double col_base = 0;
+
+	std::vector< ChVector<> > mpoints;
+	for (int i = 0; i< col_nedges; ++i)
+	{
+		double alpha = CH_C_2PI * ((double)i / (double)col_nedges); // polar coord
+		double x = col_radius_hi * cos(alpha);
+		double z = col_radius_hi * sin(alpha);
+		double y = col_base + col_height;
+		mpoints.push_back(ChVector<>(x, y, z));
+	}
+	for (int i = 0; i< col_nedges; ++i)
+	{
+		double alpha = CH_C_2PI * ((double)i / (double)col_nedges); // polar coord
+		double x = col_radius_lo * cos(alpha);
+		double z = col_radius_lo * sin(alpha);
+		double y = col_base;
+		mpoints.push_back(ChVector<>(x, y, z));
+	}
+	ChSharedPtr<ChBodyEasyConvexHull> bodyColumn(new ChBodyEasyConvexHull(
+		mpoints,
+		col_density,
+		true,
+		true));
+	ChCoordsys<> cog_column(ChVector<>(0, col_base + col_height / 2, 0));
+	ChCoordsys<> abs_cog_column = cog_column >> base_pos;
+	bodyColumn->SetCoord(abs_cog_column);
+	mphysicalSystem.Add(bodyColumn);
+
+	//create a texture for the brickcolumn
+	ChSharedPtr<ChTexture> mtexturecolumns(new ChTexture());
+	mtexturecolumns->SetTextureFilename(GetChronoDataFile("orange.png"));
+	bodyColumn->AddAsset(mtexturecolumns);
+
+	
+
+
 }
    
  
@@ -119,7 +168,7 @@ int main(int argc, char* argv[])
 	application.AddTypicalSky();
 	application.AddTypicalLights();
 	application.AddTypicalCamera(core::vector3df(3,12,-10));		//to change the position of camera
-	application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 35, 512, video::SColorf(0.6,0.8,1));
+	application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
  
 	// Create all the rigid bodies.
 
@@ -191,7 +240,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the pedestal1
 		ChSharedPtr<ChTexture> mtexturepedestal1(new ChTexture());
-		mtexturepedestal1->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturepedestal1->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		pedestal1->AddAsset(mtexturepedestal1);
 
 
@@ -210,7 +259,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the pedestal2
 		ChSharedPtr<ChTexture> mtexturepedestal2(new ChTexture());
-		mtexturepedestal2->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturepedestal2->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		pedestal2->AddAsset(mtexturepedestal2);
 
 
@@ -229,7 +278,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the pedestal3
 		ChSharedPtr<ChTexture> mtexturepedestal3(new ChTexture());
-		mtexturepedestal3->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturepedestal3->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		pedestal3->AddAsset(mtexturepedestal2);
 
 
@@ -242,7 +291,7 @@ int main(int argc, char* argv[])
 		create_column(mphysicalSystem, base_position1l, 100, 0.283, 0.30, 0.95, density);
 
 		ChCoordsys<> base_position1m(ChVector<>(0 * spacing, 1.05, 0));
-		create_column(mphysicalSystem, base_position1m, 100, 0.251, 0.283, 1.9, density);		//coordinate of the first group of columns, middle
+		create_brickcolumn(mphysicalSystem, base_position1m, 100, 0.251, 0.283, 1.9, density);		//coordinate of the first group of columns, middle
 
 		ChCoordsys<> base_position1h(ChVector<>(0 * spacing, 2.95, 0));
 		create_column(mphysicalSystem, base_position1h, 100, 0.25, 0.251, 0.30, density);		//coordinate of the first group of columns, top
@@ -254,7 +303,7 @@ int main(int argc, char* argv[])
 		create_column(mphysicalSystem, base_position2l, 100, 0.293, 0.30, 0.32, density);
 
 		ChCoordsys<> base_position2m(ChVector<>(1 * spacing, 0.42, 0));
-		create_column(mphysicalSystem, base_position2m, 100, 0.266, 0.293, 1.66, density);		//coordinate of the second group of columns, middle
+		create_brickcolumn(mphysicalSystem, base_position2m, 100, 0.266, 0.293, 1.66, density);		//coordinate of the second group of columns, middle
 
 		ChCoordsys<> base_position2h(ChVector<>(1 * spacing, 2.08, 0));
 		create_column(mphysicalSystem, base_position2h, 100, 0.25, 0.266, 1.17, density);		//coordinate of the second group of columns, top
@@ -266,7 +315,7 @@ int main(int argc, char* argv[])
 		create_column(mphysicalSystem, base_position3l, 100, 0.285, 0.30, 1.35, density);
 
 		ChCoordsys<> base_position3m(ChVector<>(2 * spacing, 1.45, 0));
-		create_column(mphysicalSystem, base_position3m, 100, 0.251, 0.285, 1.55, density);		//coordinate of the third group of columns, middle
+		create_brickcolumn(mphysicalSystem, base_position3m, 100, 0.251, 0.285, 1.55, density);		//coordinate of the third group of columns, middle
 
 		ChCoordsys<> base_position3h(ChVector<>(2 * spacing, 3, 0));
 		create_column(mphysicalSystem, base_position3h, 100, 0.25, 0.251, 0.25, density);		//coordinate of the third group of columns, top
@@ -290,7 +339,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital1
 		ChSharedPtr<ChTexture> mtexturecapital1(new ChTexture());
-		mtexturecapital1->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapital1->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capital1->AddAsset(mtexturecapital1);
 
 
@@ -309,7 +358,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital2
 		ChSharedPtr<ChTexture> mtexturecapital2(new ChTexture());
-		mtexturecapital2->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapital2->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capital2->AddAsset(mtexturecapital2);
 
 
@@ -328,7 +377,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital3
 		ChSharedPtr<ChTexture> mtexturecapital3(new ChTexture());
-		mtexturecapital3->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapital3->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capital3->AddAsset(mtexturecapital3);
 
 
@@ -516,7 +565,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital1
 		ChSharedPtr<ChTexture> mtexturecapital1(new ChTexture());
-		mtexturecapital1->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapital1->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capital1->AddAsset(mtexturecapital1);
 
 
@@ -535,7 +584,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital2
 		ChSharedPtr<ChTexture> mtexturecapital2(new ChTexture());
-		mtexturecapital2->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapital2->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capital2->AddAsset(mtexturecapital2);
 
 
@@ -554,7 +603,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital3
 		ChSharedPtr<ChTexture> mtexturecapital3(new ChTexture());
-		mtexturecapital3->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapital3->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capital3->AddAsset(mtexturecapital3);
 
 
@@ -573,7 +622,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital4
 		ChSharedPtr<ChTexture> mtexturecapital4(new ChTexture());
-		mtexturecapital4->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapital4->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capital4->AddAsset(mtexturecapital4);
 
 
@@ -595,26 +644,26 @@ int main(int argc, char* argv[])
 
 		//create a texture for the topBeam1
 		ChSharedPtr<ChTexture> mtexturetopBeam1(new ChTexture());
-		mtexturetopBeam1->SetTextureFilename(GetChronoDataFile("rock.jpg"));
+		mtexturetopBeam1->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		topBeam1->AddAsset(mtexturetopBeam1);
 
 
 		//create topBeam2
 		
 		ChSharedPtr<ChBodyEasyBox> topBeam2(new ChBodyEasyBox(
-			3 * spacing, 0.45, 0.6, // x y z sizes
+			3 * spacing, 0.45, 0.8, // x y z sizes
 			density,
 			true,
 			true));
 
-		ChCoordsys<> cog_topBeam2(ChVector<>(3.7, 4.475, 0));
+		ChCoordsys<> cog_topBeam2(ChVector<>(3.7, 4.475, 0.1));
 		topBeam2->SetCoord(cog_topBeam2);
 
 		mphysicalSystem.Add(topBeam2);
 
 		//create a texture for the topBeam2
 		ChSharedPtr<ChTexture> mtexturetopBeam2(new ChTexture());
-		mtexturetopBeam2->SetTextureFilename(GetChronoDataFile("rock.jpg"));
+		mtexturetopBeam2->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		topBeam2->AddAsset(mtexturetopBeam2);
 
 
@@ -684,7 +733,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital1
 		ChSharedPtr<ChTexture> mtexturecapitall1(new ChTexture());
-		mtexturecapitall1->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapitall1->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capitall1->AddAsset(mtexturecapitall1);
 
 
@@ -703,7 +752,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital2
 		ChSharedPtr<ChTexture> mtexturecapitall2(new ChTexture());
-		mtexturecapitall2->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapitall2->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capitall2->AddAsset(mtexturecapitall2);
 
 
@@ -722,7 +771,7 @@ int main(int argc, char* argv[])
 
 		//create a texture for the capital3
 		ChSharedPtr<ChTexture> mtexturecapitall3(new ChTexture());
-		mtexturecapitall3->SetTextureFilename(GetChronoDataFile("brick.jpg"));
+		mtexturecapitall3->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 		capitall3->AddAsset(mtexturecapitall3);
 
 		
