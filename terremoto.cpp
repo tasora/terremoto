@@ -509,48 +509,6 @@ int main(int argc, char* argv[])
 		}
 		}*/
 
-
-
-
-		// Use this function for adding a ChIrrNodeAsset to all items
-		// Otherwise use application.AssetBind(myitem); on a per-item basis.
-		application.AssetBindAll();
-
-		// Use this function for 'converting' assets into Irrlicht meshes 
-		application.AssetUpdateAll();
-
-		// This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht
-		// for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
-
-		application.AddShadowAll();
-
-
-		// Modify some setting of the physical system for the simulation, if you want
-		mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-		mphysicalSystem.SetIterLCPmaxItersSpeed(50);
-		mphysicalSystem.SetIterLCPmaxItersStab(5);
-
-
-		//mphysicalSystem.SetUseSleeping(true);
-
-		application.SetStepManage(true);
-		application.SetTimestep(0.005);
-		application.SetTryRealtime(true);
-
-		// 
-		// THE SOFT-REAL-TIME CYCLE
-		//
-
-		while (application.GetDevice()->run())
-		{
-			application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
-
-			application.DrawAll();
-
-			application.DoStep();
-
-			application.GetVideoDriver()->endScene();
-		}
 	}
 
 
