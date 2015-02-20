@@ -159,6 +159,37 @@ ChSharedPtr<ChBody> create_brickcolumn(
 }
    
  
+ChFunction* create_motion(std::string filename_pos, double t_offset = 0, double factor =1.0)
+{
+	ChStreamInAsciiFile mstream(GetChronoDataFile(filename_pos).c_str());
+	
+	ChFunction_Recorder* mrecorder = new ChFunction_Recorder;
+	
+	while(!mstream.End_of_stream())
+	{
+		double time = 0;
+		double value = 0;
+		try
+		{
+			mstream >> time;
+			mstream >> value;
+
+			GetLog() << "  t=" << time << "  p=" << value << "\n";
+
+			mrecorder->AddPoint(time + t_offset, value * factor);
+		}
+		catch(ChException myerror)
+		{
+			GetLog() << "  End parsing file " << GetChronoDataFile(filename_pos).c_str() << " because: \n  " << myerror.what() << "\n";
+			break;
+		}
+	}
+	GetLog() << "Done parsing. \n";
+
+	return mrecorder;
+}
+
+
 int main(int argc, char* argv[])
 {
 	// Create a ChronoENGINE physical system
@@ -219,8 +250,29 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChLinkLockLock> linkEarthquake(new ChLinkLockLock);
 	linkEarthquake->Initialize(tableBody, floorBody, ChCoordsys<>(ChVector<>(0,0,0)) );
 
-	ChFunction_Sine* mmotion_x = new ChFunction_Sine(0,1.6,0.5); // phase freq ampl, carachteristics of input motion
-	linkEarthquake->SetMotion_X(mmotion_x);
+	double time_offset = 5.0; // begin earthquake after 5 s to allow stabilization of blocks after creation.
+	double ampl_factor = 2.0; // use lower or greater to scale the earthquake.
+	bool   use_barrier = true; // if true, the Barrier data files are used, otherwise the No_Barrier datafiles are used
+
+	// Define the horizontal motion, on x:
+	//ChFunction_Sine* mmotion_x = new ChFunction_Sine(0,1.6,0.5); // phase freq ampl, carachteristics of input motion
+	ChFunction* mmotion_x    = create_motion("Time history 10x0.50 Foam (d=6 m)/Barrier_Uv.txt", time_offset, ampl_factor);
+	ChFunction* mmotion_x_NB = create_motion("Time history 10x0.50 Foam (d=6 m)/No_Barrier_Uv.txt", time_offset, ampl_factor);
+
+	// Define the vertical motion, on y:
+	ChFunction* mmotion_y    = create_motion("Time history 10x0.50 Foam (d=6 m)/Barrier_Uh.txt", time_offset, ampl_factor);
+	ChFunction* mmotion_y_NB = create_motion("Time history 10x0.50 Foam (d=6 m)/No_Barrier_Uh.txt", time_offset, ampl_factor);
+
+	if (use_barrier)
+	{
+		linkEarthquake->SetMotion_X(mmotion_x);
+		linkEarthquake->SetMotion_Y(mmotion_y);
+	}
+	else
+	{
+		linkEarthquake->SetMotion_X(mmotion_x_NB);
+		linkEarthquake->SetMotion_Y(mmotion_y_NB);
+	}
 
 	mphysicalSystem.Add(linkEarthquake);
 
