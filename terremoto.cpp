@@ -864,17 +864,18 @@ int main(int argc, char* argv[])
 		application.AddShadowAll();
 
 
-		// Modify some setting of the physical system for the simulation, if you want
-		mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-		mphysicalSystem.SetIterLCPmaxItersSpeed(50);
-		mphysicalSystem.SetIterLCPmaxItersStab(5);
+	// Modify some setting of the physical system for the simulation, if you want
+	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN); // slower but more pricise
+	mphysicalSystem.SetIterLCPmaxItersSpeed(80);
+	mphysicalSystem.SetIterLCPmaxItersStab(5);
 
 
-		//mphysicalSystem.SetUseSleeping(true);
+	//mphysicalSystem.SetUseSleeping(true);
 
-		application.SetStepManage(true);
-		application.SetTimestep(0.005);
-		application.SetTryRealtime(true);
+	application.SetStepManage(true);
+	application.SetTimestep(0.005);
+	application.SetTryRealtime(false);
 
 		// 
 		// THE SOFT-REAL-TIME CYCLE
