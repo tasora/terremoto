@@ -51,11 +51,13 @@ using namespace io;
 using namespace gui; 
 
 
+ChSharedPtr<ChMaterialSurface> mmat;
+
 	// Utility function. Create a tapered column as a faceted convex hull.
 	// For convex hulls, you just need to build a vector of points, it does not matter the order,
 	// because they will be considered 'wrapped' in a convex hull anyway.
-  
-void create_column(
+ 
+ChSharedPtr<ChBody> create_column(
 		ChSystem& mphysicalSystem, 
 		ChCoordsys<> base_pos, 
 		int    col_nedges= 10,
@@ -99,12 +101,14 @@ void create_column(
 	mtexturecolumns->SetTextureFilename(GetChronoDataFile("whiteconcrete.jpg"));
 	bodyColumn->AddAsset(mtexturecolumns);
 
+	bodyColumn->SetMaterialSurface(mmat);
+
 	mphysicalSystem.Add(bodyColumn);
 
-	
+	return bodyColumn;
 }
 
-void create_brickcolumn(
+ChSharedPtr<ChBody> create_brickcolumn(
 	ChSystem& mphysicalSystem,
 	ChCoordsys<> base_pos,
 	int    col_nedges = 10,
@@ -148,12 +152,44 @@ void create_brickcolumn(
 	mtexturecolumns->SetTextureFilename(GetChronoDataFile("orange.png"));
 	bodyColumn->AddAsset(mtexturecolumns);
 
-	
+	bodyColumn->SetMaterialSurface(mmat);
 
+	return bodyColumn;
 
 }
    
  
+ChFunction* create_motion(std::string filename_pos, double t_offset = 0, double factor =1.0)
+{
+	ChStreamInAsciiFile mstream(GetChronoDataFile(filename_pos).c_str());
+	
+	ChFunction_Recorder* mrecorder = new ChFunction_Recorder;
+	
+	while(!mstream.End_of_stream())
+	{
+		double time = 0;
+		double value = 0;
+		try
+		{
+			mstream >> time;
+			mstream >> value;
+
+			GetLog() << "  t=" << time << "  p=" << value << "\n";
+
+			mrecorder->AddPoint(time + t_offset, value * factor);
+		}
+		catch(ChException myerror)
+		{
+			GetLog() << "  End parsing file " << GetChronoDataFile(filename_pos).c_str() << " because: \n  " << myerror.what() << "\n";
+			break;
+		}
+	}
+	GetLog() << "Done parsing. \n";
+
+	return mrecorder;
+}
+
+
 int main(int argc, char* argv[])
 {
 	// Create a ChronoENGINE physical system
@@ -167,9 +203,17 @@ int main(int argc, char* argv[])
 	application.AddTypicalLogo();
 	application.AddTypicalSky();
 	application.AddTypicalLights();
-	application.AddTypicalCamera(core::vector3df(3,12,-10));		//to change the position of camera
+	application.AddTypicalCamera(core::vector3df(1,1,-5), core::vector3df(3,3,0));		//to change the position of camera
 	application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
  
+	// Create a shared material surface used by columns etc.
+	mmat = ChSharedPtr<ChMaterialSurface>(new ChMaterialSurface);
+	mmat->SetFriction(0.6);
+	//mmat->SetSpinningFriction(0.01);
+	//mmat->SetRollingFriction(0.01);
+	mmat->SetCompliance(0.00000002);
+	mmat->SetDampingF(1.5);
+
 	// Create all the rigid bodies.
 
 	// Create a floor that is fixed (that is used also to represent the aboslute reference)
@@ -206,22 +250,50 @@ int main(int argc, char* argv[])
 	ChSharedPtr<ChLinkLockLock> linkEarthquake(new ChLinkLockLock);
 	linkEarthquake->Initialize(tableBody, floorBody, ChCoordsys<>(ChVector<>(0,0,0)) );
 
-	ChFunction_Sine* mmotion_x = new ChFunction_Sine(0,1.6,0.5); // phase freq ampl, carachteristics of input motion
-	linkEarthquake->SetMotion_X(mmotion_x);
+	double time_offset = 5.0; // begin earthquake after 5 s to allow stabilization of blocks after creation.
+	double ampl_factor = 1.0; // use lower or greater to scale the earthquake.
+	bool   use_barrier = true; // if true, the Barrier data files are used, otherwise the No_Barrier datafiles are used
+
+	// Define the horizontal motion, on x:
+	//ChFunction_Sine* mmotion_x = new ChFunction_Sine(0,1.6,0.5); // phase freq ampl, carachteristics of input motion
+	ChFunction* mmotion_x    = create_motion("Time history 10x0.50 Foam (d=6 m)/Barrier_Uv.txt", time_offset, ampl_factor);
+	ChFunction* mmotion_x_NB = create_motion("Time history 10x0.50 Foam (d=6 m)/No_Barrier_Uv.txt", time_offset, ampl_factor);
+
+	// Define the vertical motion, on y:
+	ChFunction* mmotion_y    = create_motion("Time history 10x0.50 Foam (d=6 m)/Barrier_Uh.txt", time_offset, ampl_factor);
+	ChFunction* mmotion_y_NB = create_motion("Time history 10x0.50 Foam (d=6 m)/No_Barrier_Uh.txt", time_offset, ampl_factor);
+
+	if (use_barrier)
+	{
+		linkEarthquake->SetMotion_X(mmotion_x);
+		linkEarthquake->SetMotion_Y(mmotion_y);
+	}
+	else
+	{
+		linkEarthquake->SetMotion_X(mmotion_x_NB);
+		linkEarthquake->SetMotion_Y(mmotion_y_NB);
+	}
 
 	mphysicalSystem.Add(linkEarthquake);
+
+
+	// Pointers to some objects that will be plotted, for future use.
+	ChSharedPtr<ChBody> plot_brick_1;
+	ChSharedPtr<ChBody> plot_table;
+
+	plot_table = tableBody; // others will be hooked later.
 
 
 	// Create the elements of the model
 
 
 
-	if (false)		//if it's typed "true", the simple temple will be generated
+	if (true)		//if it's typed "true", the simple temple will be generated
 	{
 
 		double spacing = 2.2;
 		double density = 3000;
-
+		int nedges=10;
 
 		//to create pedestals
 
@@ -288,37 +360,37 @@ int main(int argc, char* argv[])
 		//create column1
 
 		ChCoordsys<> base_position1l(ChVector<>(0 * spacing, 0.1, 0));	//coordinate of the first group of columns, bottom
-		create_column(mphysicalSystem, base_position1l, 100, 0.283, 0.30, 0.95, density);
+		create_column(mphysicalSystem, base_position1l, nedges, 0.283, 0.30, 0.95, density);
 
 		ChCoordsys<> base_position1m(ChVector<>(0 * spacing, 1.05, 0));
-		create_brickcolumn(mphysicalSystem, base_position1m, 100, 0.251, 0.283, 1.9, density);		//coordinate of the first group of columns, middle
+		create_brickcolumn(mphysicalSystem, base_position1m, nedges, 0.251, 0.283, 1.9, density);		//coordinate of the first group of columns, middle
 
 		ChCoordsys<> base_position1h(ChVector<>(0 * spacing, 2.95, 0));
-		create_column(mphysicalSystem, base_position1h, 100, 0.25, 0.251, 0.30, density);		//coordinate of the first group of columns, top
-
+		plot_brick_1 = create_column(mphysicalSystem, base_position1h, nedges, 0.25, 0.251, 0.30, density);		//coordinate of the first group of columns, top
+		// NOTE!!!!! the "plot_brick_1" points to this created column chunk, and plot_brick_1 is the one that will be plotted!!
 
 		//create column2
 
 		ChCoordsys<> base_position2l(ChVector<>(1 * spacing, 0.1, 0));	//coordinate of the second group of columns, bottom
-		create_column(mphysicalSystem, base_position2l, 100, 0.293, 0.30, 0.32, density);
+		create_column(mphysicalSystem, base_position2l, nedges, 0.293, 0.30, 0.32, density);
 
 		ChCoordsys<> base_position2m(ChVector<>(1 * spacing, 0.42, 0));
-		create_brickcolumn(mphysicalSystem, base_position2m, 100, 0.266, 0.293, 1.66, density);		//coordinate of the second group of columns, middle
+		create_brickcolumn(mphysicalSystem, base_position2m, nedges, 0.266, 0.293, 1.66, density);		//coordinate of the second group of columns, middle
 
 		ChCoordsys<> base_position2h(ChVector<>(1 * spacing, 2.08, 0));
-		create_column(mphysicalSystem, base_position2h, 100, 0.25, 0.266, 1.17, density);		//coordinate of the second group of columns, top
+		create_column(mphysicalSystem, base_position2h, nedges, 0.25, 0.266, 1.17, density);		//coordinate of the second group of columns, top
 
 
 		//create column3
 
 		ChCoordsys<> base_position3l(ChVector<>(2 * spacing, 0.1, 0));	//coordinate of the third group of columns, bottom
-		create_column(mphysicalSystem, base_position3l, 100, 0.285, 0.30, 1.35, density);
+		create_column(mphysicalSystem, base_position3l, nedges, 0.285, 0.30, 1.35, density);
 
 		ChCoordsys<> base_position3m(ChVector<>(2 * spacing, 1.45, 0));
-		create_brickcolumn(mphysicalSystem, base_position3m, 100, 0.251, 0.285, 1.55, density);		//coordinate of the third group of columns, middle
+		create_brickcolumn(mphysicalSystem, base_position3m, nedges, 0.251, 0.285, 1.55, density);		//coordinate of the third group of columns, middle
 
 		ChCoordsys<> base_position3h(ChVector<>(2 * spacing, 3, 0));
-		create_column(mphysicalSystem, base_position3h, 100, 0.25, 0.251, 0.25, density);		//coordinate of the third group of columns, top
+		create_column(mphysicalSystem, base_position3h, nedges, 0.25, 0.251, 0.25, density);		//coordinate of the third group of columns, top
 
 
 
@@ -444,48 +516,6 @@ int main(int argc, char* argv[])
 		}
 		}*/
 
-
-
-
-		// Use this function for adding a ChIrrNodeAsset to all items
-		// Otherwise use application.AssetBind(myitem); on a per-item basis.
-		application.AssetBindAll();
-
-		// Use this function for 'converting' assets into Irrlicht meshes 
-		application.AssetUpdateAll();
-
-		// This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht
-		// for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
-
-		application.AddShadowAll();
-
-
-		// Modify some setting of the physical system for the simulation, if you want
-		mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-		mphysicalSystem.SetIterLCPmaxItersSpeed(50);
-		mphysicalSystem.SetIterLCPmaxItersStab(5);
-
-
-		//mphysicalSystem.SetUseSleeping(true);
-
-		application.SetStepManage(true);
-		application.SetTimestep(0.005);
-		application.SetTryRealtime(true);
-
-		// 
-		// THE SOFT-REAL-TIME CYCLE
-		//
-
-		while (application.GetDevice()->run())
-		{
-			application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
-
-			application.DrawAll();
-
-			application.DoStep();
-
-			application.GetVideoDriver()->endScene();
-		}
 	}
 
 
@@ -496,56 +526,56 @@ int main(int argc, char* argv[])
 	{
 		double spacing = 2.7;
 		double density = 3000;
-
+		int nedges=10;
 
 	//to create "big" columns
 
 		//create column1
 
 		ChCoordsys<> base_position1l(ChVector<>(0 * spacing, 0, 0));	//coordinate of the first group of columns, bottom
-		create_column(mphysicalSystem, base_position1l, 100, 0.284, 0.30, 0.97, density);
+		create_column(mphysicalSystem, base_position1l, nedges, 0.284, 0.30, 0.97, density);
 
 		ChCoordsys<> base_position1m(ChVector<>(0 * spacing, 0.97, 0));
-		create_column(mphysicalSystem, base_position1m, 100, 0.265, 0.284, 1.13, density);		//coordinate of the first group of columns, middle
+		create_column(mphysicalSystem, base_position1m, nedges, 0.265, 0.284, 1.13, density);		//coordinate of the first group of columns, middle
 
 		ChCoordsys<> base_position1h(ChVector<>(0 * spacing, 2.1, 0));
-		create_column(mphysicalSystem, base_position1h, 100, 0.25, 0.265, 1.15, density);		//coordinate of the first group of columns, top
+		create_column(mphysicalSystem, base_position1h, nedges, 0.25, 0.265, 1.15, density);		//coordinate of the first group of columns, top
 
 
 		//create column2
 
 		ChCoordsys<> base_position2l(ChVector<>(1 * spacing, 0, 0));	//coordinate of the second group of columns, bottom
-		create_column(mphysicalSystem, base_position2l, 100, 0.283, 0.30, 1.05, density);
+		create_column(mphysicalSystem, base_position2l, nedges, 0.283, 0.30, 1.05, density);
 
 		ChCoordsys<> base_position2m(ChVector<>(1 * spacing, 1.05, 0));
-		create_column(mphysicalSystem, base_position2m, 100, 0.267, 0.283, 0.95, density);		//coordinate of the second group of columns, middle
+		create_column(mphysicalSystem, base_position2m, nedges, 0.267, 0.283, 0.95, density);		//coordinate of the second group of columns, middle
 
 		ChCoordsys<> base_position2h(ChVector<>(1 * spacing, 2, 0));
-		create_column(mphysicalSystem, base_position2h, 100, 0.25, 0.267, 1.25, density);		//coordinate of the second group of columns, top
+		create_column(mphysicalSystem, base_position2h, nedges, 0.25, 0.267, 1.25, density);		//coordinate of the second group of columns, top
 
 
 		//create column3
 
 		ChCoordsys<> base_position3l(ChVector<>(2 * spacing, 0, 0));	//coordinate of the third group of columns, bottom
-		create_column(mphysicalSystem, base_position3l, 100, 0.284, 0.30, 0.95, density);
+		create_column(mphysicalSystem, base_position3l, nedges, 0.284, 0.30, 0.95, density);
 
 		ChCoordsys<> base_position3m(ChVector<>(2 * spacing, 0.95, 0));
-		create_column(mphysicalSystem, base_position3m, 100, 0.264, 0.284, 1.20, density);		//coordinate of the third group of columns, middle
+		create_column(mphysicalSystem, base_position3m, nedges, 0.264, 0.284, 1.20, density);		//coordinate of the third group of columns, middle
 
 		ChCoordsys<> base_position3h(ChVector<>(2 * spacing, 2.15, 0));
-		create_column(mphysicalSystem, base_position3h, 100, 0.25, 0.264, 1.1, density);		//coordinate of the third group of columns, top
+		create_column(mphysicalSystem, base_position3h, nedges, 0.25, 0.264, 1.1, density);		//coordinate of the third group of columns, top
 
 
 		//create column4
 
 		ChCoordsys<> base_position4l(ChVector<>(3 * spacing, 0, 0));	//coordinate of the fourth group of columns, bottom
-		create_column(mphysicalSystem, base_position4l, 100, 0.278, 0.30, 1.33, density);
+		create_column(mphysicalSystem, base_position4l, nedges, 0.278, 0.30, 1.33, density);
 
 		ChCoordsys<> base_position4m(ChVector<>(3 * spacing, 1.33, 0));
-		create_column(mphysicalSystem, base_position4m, 100, 0.264, 0.278, 0.85, density);		//coordinate of the fourth group of columns, middle
+		create_column(mphysicalSystem, base_position4m, nedges, 0.264, 0.278, 0.85, density);		//coordinate of the fourth group of columns, middle
 
 		ChCoordsys<> base_position4h(ChVector<>(3 * spacing, 2.18, 0));
-		create_column(mphysicalSystem, base_position4h, 100, 0.25, 0.264, 1.07, density);		//coordinate of the fourth group of columns, top
+		create_column(mphysicalSystem, base_position4h, nedges, 0.25, 0.264, 1.07, density);		//coordinate of the fourth group of columns, top
 
 
 	//to create capitals
@@ -671,16 +701,16 @@ int main(int argc, char* argv[])
 
 		//create pedestal1
 		ChCoordsys<> base_position1p(ChVector<>(0 * spacing, 4.7, 0));		//coordinate of the first pedestal of the "little" columns
-		create_column(mphysicalSystem, base_position1p, 100, 0.175, 0.25, 0.20, density);
+		create_column(mphysicalSystem, base_position1p, nedges, 0.175, 0.25, 0.20, density);
 
 
 		//create pedestal2
 		ChCoordsys<> base_position2p(ChVector<>(1 * spacing, 4.7, 0));		//coordinate of the second pedestal of the "little" columns
-		create_column(mphysicalSystem, base_position2p, 100, 0.175, 0.25, 0.20, density);
+		create_column(mphysicalSystem, base_position2p, nedges, 0.175, 0.25, 0.20, density);
 
 		//create pedestal3
 		ChCoordsys<> base_position3p(ChVector<>(2 * spacing, 4.7, 0));		//coordinate of the third pedestal of the "little" columns
-		create_column(mphysicalSystem, base_position3p, 100, 0.175, 0.25, 0.20, density);
+		create_column(mphysicalSystem, base_position3p, nedges, 0.175, 0.25, 0.20, density);
 
 
 	//to create "little" columns
@@ -688,32 +718,32 @@ int main(int argc, char* argv[])
 		//create little column1
 
 		ChCoordsys<> base_position1ll(ChVector<>(0 * spacing, 4.9, 0));	//coordinate of the first group of "little" columns, bottom
-		create_column(mphysicalSystem, base_position1ll, 100, 0.164, 0.175, 1.14, density);
+		create_column(mphysicalSystem, base_position1ll, nedges, 0.164, 0.175, 1.14, density);
 
 		ChCoordsys<> base_position1lm(ChVector<>(0 * spacing, 6.04, 0));
-		create_column(mphysicalSystem, base_position1lm, 100, 0.15, 0.164, 1.41, density);		//coordinate of the first group of "little" columns, middle
-
+		plot_brick_1 = create_column(mphysicalSystem, base_position1lm, nedges, 0.15, 0.164, 1.41, density);		//coordinate of the first group of "little" columns, middle
+		// NOTE!!!!! the "plot_brick_1" points to this created column chunk, and plot_brick_1 is the one that will be plotted!!
 		
 
 		//create little column2
 
 		ChCoordsys<> base_position2ll(ChVector<>(1 * spacing, 4.9, 0));	//coordinate of the second group of "little" columns, bottom
-		create_column(mphysicalSystem, base_position2ll, 100, 0.171, 0.175, 0.48, density);
+		create_column(mphysicalSystem, base_position2ll, nedges, 0.171, 0.175, 0.48, density);
 
 		ChCoordsys<> base_position2lm(ChVector<>(1 * spacing, 5.38, 0));
-		create_column(mphysicalSystem, base_position2lm, 100, 0.157, 0.171, 1.44, density);		//coordinate of the second group of "little" columns, middle
+		create_column(mphysicalSystem, base_position2lm, nedges, 0.157, 0.171, 1.44, density);		//coordinate of the second group of "little" columns, middle
 
 		ChCoordsys<> base_position2lh(ChVector<>(1 * spacing, 6.82, 0));
-		create_column(mphysicalSystem, base_position2lh, 100, 0.150, 0.157, 0.63, density);		//coordinate of the second group of "little" columns, top
+		create_column(mphysicalSystem, base_position2lh, nedges, 0.150, 0.157, 0.63, density);		//coordinate of the second group of "little" columns, top
 
 
 		//create little column3
 
 		ChCoordsys<> base_position3ll(ChVector<>(2 * spacing, 4.9, 0));	//coordinate of the third group of "little" columns, bottom
-		create_column(mphysicalSystem, base_position3ll, 100, 0.168, 0.175, 0.69, density);
+		create_column(mphysicalSystem, base_position3ll, nedges, 0.168, 0.175, 0.69, density);
 
 		ChCoordsys<> base_position3lm(ChVector<>(2 * spacing, 5.59, 0));
-		create_column(mphysicalSystem, base_position3lm, 100, 0.15, 0.168, 1.86, density);		//coordinate of the third group of "little" columns, middle
+		create_column(mphysicalSystem, base_position3lm, nedges, 0.15, 0.168, 1.86, density);		//coordinate of the third group of "little" columns, middle
 
 		
 		//to create capitals of little columns
@@ -726,7 +756,7 @@ int main(int argc, char* argv[])
 			true,
 			true));
 
-		ChCoordsys<> cog_capitall1(ChVector<>(0, 7.575, 0));
+		ChCoordsys<> cog_capitall1(ChVector<>(0, 7.595, 0));
 		capitall1->SetCoord(cog_capitall1);
 
 		mphysicalSystem.Add(capitall1);
@@ -764,7 +794,7 @@ int main(int argc, char* argv[])
 			true,
 			true));
 
-		ChCoordsys<> cog_capitall3(ChVector<>(2 * spacing, 7.575, 0));
+		ChCoordsys<> cog_capitall3(ChVector<>(2 * spacing, 7.615, 0));
 		capitall3->SetCoord(cog_capitall3);
 
 		mphysicalSystem.Add(capitall3);
@@ -819,48 +849,202 @@ int main(int argc, char* argv[])
 		}*/
 
 
-
-
-		// Use this function for adding a ChIrrNodeAsset to all items
-		// Otherwise use application.AssetBind(myitem); on a per-item basis.
-		application.AssetBindAll();
-
-		// Use this function for 'converting' assets into Irrlicht meshes 
-		application.AssetUpdateAll();
-
-		// This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht
-		// for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
-
-		application.AddShadowAll();
-
-
-		// Modify some setting of the physical system for the simulation, if you want
-		mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
-		mphysicalSystem.SetIterLCPmaxItersSpeed(50);
-		mphysicalSystem.SetIterLCPmaxItersStab(5);
-
-
-		//mphysicalSystem.SetUseSleeping(true);
-
-		application.SetStepManage(true);
-		application.SetTimestep(0.005);
-		application.SetTryRealtime(true);
-
-		// 
-		// THE SOFT-REAL-TIME CYCLE
-		//
-
-		while (application.GetDevice()->run())
-		{
-			application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
-
-			application.DrawAll();
-
-			application.DoStep();
-
-			application.GetVideoDriver()->endScene();
-		}
 	}
+
+
+	
+	// Use this function for adding a ChIrrNodeAsset to all items
+	// Otherwise use application.AssetBind(myitem); on a per-item basis.
+	application.AssetBindAll();
+
+	// Use this function for 'converting' assets into Irrlicht meshes 
+	application.AssetUpdateAll();
+
+	// This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht
+	// for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
+
+	application.AddShadowAll();
+
+
+	// Modify some setting of the physical system for the simulation, if you want
+	//mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_SOR);
+	mphysicalSystem.SetLcpSolverType(ChSystem::LCP_ITERATIVE_BARZILAIBORWEIN); // slower but more pricise
+	mphysicalSystem.SetIterLCPmaxItersSpeed(80);
+	mphysicalSystem.SetIterLCPmaxItersStab(5);
+
+
+	//mphysicalSystem.SetUseSleeping(true);
+
+	application.SetStepManage(true);
+	application.SetTimestep(0.005);
+	application.SetTryRealtime(false);
+
+
+	// Files for output data
+	ChStreamOutAsciiFile data_earthquake_x("data_earthquake_x.dat");
+	ChStreamOutAsciiFile data_earthquake_y("data_earthquake_y.dat");
+	ChStreamOutAsciiFile data_earthquake_x_NB("data_earthquake_x_NB.dat");
+	ChStreamOutAsciiFile data_earthquake_y_NB("data_earthquake_y_NB.dat");
+	ChStreamOutAsciiFile data_table("data_table.dat");
+	ChStreamOutAsciiFile data_brick_1("data_brick_1.dat");
+
+
+	// 
+	// THE SOFT-REAL-TIME CYCLE
+	//
+	ChVector<> brick_initial_displacement;
+
+	while (application.GetDevice()->run())
+	{
+		application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+
+		application.DrawAll();
+
+		application.DoStep();
+
+		// save data for plotting
+		double time = mphysicalSystem.GetChTime();
+
+		if (time <4.5)
+			brick_initial_displacement = plot_brick_1->GetPos() - plot_table->GetPos();
+		
+		if (time >4.5)  // save only after 4.5 s to avoid plotting initial settlement
+		{
+			data_earthquake_x << time << " " 
+							  << mmotion_x->Get_y(time) << " "
+							  << mmotion_x->Get_y_dx(time) << " "
+							  << mmotion_x->Get_y_dxdx(time) << "\n";
+
+			data_earthquake_y << time << " " 
+							  << mmotion_y->Get_y(time) << " "
+							  << mmotion_y->Get_y_dx(time) << " "
+							  << mmotion_y->Get_y_dxdx(time) << "\n";
+
+			data_earthquake_x_NB << time << " " 
+							  << mmotion_x_NB->Get_y(time) << " "
+							  << mmotion_x_NB->Get_y_dx(time) << " "
+							  << mmotion_x_NB->Get_y_dxdx(time) << "\n";
+
+			data_earthquake_y_NB << time << " " 
+							  << mmotion_y_NB->Get_y(time) << " "
+							  << mmotion_y_NB->Get_y_dx(time) << " "
+							  << mmotion_y_NB->Get_y_dxdx(time) << "\n";
+
+			data_table	<< mphysicalSystem.GetChTime() << " " 
+						<< plot_table->GetPos().x -4.05 << " "  // because created at x=4.05, and we want to plot from 0
+						<< plot_table->GetPos().y +0.5 << " "
+						<< plot_table->GetPos().z << " "
+						<< plot_table->GetPos_dt().x << " "
+						<< plot_table->GetPos_dt().y << " "
+						<< plot_table->GetPos_dt().z << " "
+						<< plot_table->GetPos_dtdt().x << " "
+						<< plot_table->GetPos_dtdt().y << " "
+						<< plot_table->GetPos_dtdt().z << "\n";
+
+			ChFrameMoving<> rel_motion;
+			plot_table->TransformParentToLocal(plot_brick_1->GetFrame_REF_to_abs(), rel_motion);
+
+			data_brick_1 << mphysicalSystem.GetChTime() << " " 
+						<< rel_motion.GetPos().x - brick_initial_displacement.x << " "  
+						<< rel_motion.GetPos().y - brick_initial_displacement.y << " "
+						<< rel_motion.GetPos().z - brick_initial_displacement.z << " "
+						<< rel_motion.GetPos_dt().x << " "
+						<< rel_motion.GetPos_dt().y << " "
+						<< rel_motion.GetPos_dt().z << " "
+						<< rel_motion.GetPos_dtdt().x << " "
+						<< rel_motion.GetPos_dtdt().y << " "
+						<< rel_motion.GetPos_dtdt().z << "\n";
+			
+			// end plotting data logout
+		}
+
+		application.GetVideoDriver()->endScene();
+
+		// Exit simulation if time greater than ..
+		if (mphysicalSystem.GetChTime() > 9) 
+			break;
+	}
+
+
+	// optional: automate the plotting launching GNUplot with a commandfile
+
+	bool use_gnuplot = true;
+
+	if (use_gnuplot)
+	{
+		ChStreamOutAsciiFile gnuplot_command("__data.gpl");
+		gnuplot_command << "set term wxt 0 \n";
+		gnuplot_command << "plot \"data_earthquake_x.dat\" using 1:2 with lines title \"x, barrier\" ,";
+		gnuplot_command << "     \"data_earthquake_x_NB.dat\" using 1:2 with lines  title \"x, no barrier\" ,";
+		gnuplot_command << "     \"data_earthquake_y.dat\" using 1:2 with lines title \"y, barrier\" ,";
+		gnuplot_command << "     \"data_earthquake_y_NB.dat\" using 1:2 with lines  title \"y, no barrier\" ,";
+		gnuplot_command << "     \"data_table.dat\" using 1:2 every 10 pt 7 ps 0.2  title \"x, table\" ,";
+		gnuplot_command << "     \"data_table.dat\" using 1:3 every 10 pt 7 ps 0.2  title \"y, table\" \n";
+		gnuplot_command << "set xlabel \"Time (s)\" \n";
+		gnuplot_command << "set ylabel \"x (m)\" \n";
+		gnuplot_command << "set grid \n";
+				
+		gnuplot_command << "set term wxt 1 \n";
+		gnuplot_command << "plot \"data_earthquake_x.dat\" using 1:3 with lines title \"Vx, barrier\" ,";
+		gnuplot_command << "     \"data_earthquake_x_NB.dat\" using 1:3 with lines  title \"Vx, no barrier\" ,";
+		gnuplot_command << "     \"data_table.dat\" using 1:5 every 5  pt 7 ps 0.2 title \"Vx, table\"  \n";
+		gnuplot_command << "set xlabel \"Time (s)\" \n";
+		gnuplot_command << "set ylabel \"v_x (m/s)\" \n";
+		gnuplot_command << "set grid \n";
+
+		gnuplot_command << "set term wxt 2 \n";
+		gnuplot_command << "plot \"data_earthquake_y.dat\" using 1:3 with lines title \"Vy, barrier\" ,";
+		gnuplot_command << "     \"data_earthquake_y_NB.dat\" using 1:3 with lines  title \"Vy, no barrier\" ,";
+		gnuplot_command << "     \"data_table.dat\" using 1:6 every 5  pt 7 ps 0.2 title \"Vy, table\" \n";
+		gnuplot_command << "set xlabel \"Time (s)\" \n";
+		gnuplot_command << "set ylabel \"v_x (m/s)\" \n";
+		gnuplot_command << "set grid \n";
+
+		gnuplot_command << "set term wxt 3 \n";
+		gnuplot_command << "plot \"data_earthquake_x.dat\" using 1:4 with lines title \"Ax, barrier\", ";
+		gnuplot_command << "     \"data_earthquake_x_NB.dat\" using 1:4 with lines title \"Ax, no barrier\" ,";
+		gnuplot_command << "     \"data_table.dat\" using 1:8 every 5  pt 7 ps 0.2 title \"Ax, table\" \n";
+		gnuplot_command << "set xlabel \"Time (s)\" \n";
+		gnuplot_command << "set ylabel \"a_x (m/s^2)\" \n";
+		gnuplot_command << "set grid \n";
+
+		gnuplot_command << "set term wxt 4 \n";
+		gnuplot_command << "plot \"data_earthquake_y.dat\" using 1:4 with lines title \"Ay, barrier\", ";
+		gnuplot_command << "     \"data_earthquake_y_NB.dat\" using 1:4 with lines title \"Ay, no barrier\" ,";
+		gnuplot_command << "     \"data_table.dat\" using 1:9 every 5  pt 7 ps 0.2 title \"Ay, table\"  \n";
+		gnuplot_command << "set xlabel \"Time (s)\" \n";
+		gnuplot_command << "set ylabel \"a_x (m/s^2)\" \n";
+		gnuplot_command << "set grid \n";
+
+		gnuplot_command << "set term wxt 5 \n";
+		gnuplot_command << "plot \"data_brick_1.dat\" using 1:2 with lines title \"x tip rel. displacement\", ";
+		gnuplot_command << "     \"data_brick_1.dat\" using 1:3 with lines title \"y tip rel. displacement\", ";
+		gnuplot_command << "     \"data_brick_1.dat\" using 1:4 with lines title \"z tip rel. displacement\"  \n";
+		gnuplot_command << "set xlabel \"Time (s)\" \n";
+		gnuplot_command << "set ylabel \"(m)\" \n";
+		gnuplot_command << "set grid \n";
+
+		gnuplot_command << "set term wxt 6 \n";
+		gnuplot_command << "plot \"data_brick_1.dat\" using 1:5 with lines title \"Vx tip rel. speed\", ";
+		gnuplot_command << "     \"data_brick_1.dat\" using 1:6 with lines title \"Vy tip rel. speed\", ";
+		gnuplot_command << "     \"data_brick_1.dat\" using 1:7 with lines title \"Vz tip rel. speed\"  \n";
+		gnuplot_command << "set xlabel \"Time (s)\" \n";
+		gnuplot_command << "set ylabel \"(m/s)\" \n";
+		gnuplot_command << "set grid \n";
+
+		gnuplot_command << "set term wxt 7 \n";
+		gnuplot_command << "plot \"data_brick_1.dat\" using 1:8 with lines title \"Ax body rel. acc.\", ";
+		gnuplot_command << "     \"data_brick_1.dat\" using 1:9 with lines title \"Ay body rel. acc.\", ";
+		gnuplot_command << "     \"data_brick_1.dat\" using 1:10 with lines title \"Az body rel. acc.\"  \n";
+		gnuplot_command << "set xlabel \"Time (s)\" \n";
+		gnuplot_command << "set ylabel \"(m/s^2)\" \n";
+		gnuplot_command << "set grid \n";
+
+		system ("start gnuplot \"__data.gpl\" -persist");
+	}
+
+
+	//system ("pause");
 
 	return 0;
 }
