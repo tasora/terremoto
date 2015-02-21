@@ -256,12 +256,12 @@ int main(int argc, char* argv[])
 
 	// Define the horizontal motion, on x:
 	//ChFunction_Sine* mmotion_x = new ChFunction_Sine(0,1.6,0.5); // phase freq ampl, carachteristics of input motion
-	ChFunction* mmotion_x    = create_motion("Time history 10x0.50 Foam (d=6 m)/Barrier_Uv.txt", time_offset, ampl_factor);
-	ChFunction* mmotion_x_NB = create_motion("Time history 10x0.50 Foam (d=6 m)/No_Barrier_Uv.txt", time_offset, ampl_factor);
+	ChFunction* mmotion_x    = create_motion("Time history 10x0.50 Foam (d=6 m)/Barrier_Uh.txt", time_offset, ampl_factor);
+	ChFunction* mmotion_x_NB = create_motion("Time history 10x0.50 Foam (d=6 m)/No_Barrier_Uh.txt", time_offset, ampl_factor);
 
 	// Define the vertical motion, on y:
-	ChFunction* mmotion_y    = create_motion("Time history 10x0.50 Foam (d=6 m)/Barrier_Uh.txt", time_offset, ampl_factor);
-	ChFunction* mmotion_y_NB = create_motion("Time history 10x0.50 Foam (d=6 m)/No_Barrier_Uh.txt", time_offset, ampl_factor);
+	ChFunction* mmotion_y    = create_motion("Time history 10x0.50 Foam (d=6 m)/Barrier_Uv.txt", time_offset, ampl_factor);
+	ChFunction* mmotion_y_NB = create_motion("Time history 10x0.50 Foam (d=6 m)/No_Barrier_Uv.txt", time_offset, ampl_factor);
 
 	if (use_barrier)
 	{
@@ -968,7 +968,7 @@ int main(int argc, char* argv[])
 
 	// optional: automate the plotting launching GNUplot with a commandfile
 
-	bool use_gnuplot = true;
+	/*bool use_gnuplot = true;
 
 	if (use_gnuplot)
 	{
@@ -1044,7 +1044,7 @@ int main(int argc, char* argv[])
 	}
 
 
-	//system ("pause");
+	//system ("pause");*/
 
 	return 0;
 }
