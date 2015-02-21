@@ -265,12 +265,12 @@ int main(int argc, char* argv[])
 
 	if (use_barrier)
 	{
-		linkEarthquake->SetMotion_X(mmotion_x);
+		linkEarthquake->SetMotion_Z(mmotion_x);
 		linkEarthquake->SetMotion_Y(mmotion_y);
 	}
 	else
 	{
-		linkEarthquake->SetMotion_X(mmotion_x_NB);
+		linkEarthquake->SetMotion_Z(mmotion_x_NB);
 		linkEarthquake->SetMotion_Y(mmotion_y_NB);
 	}
 
