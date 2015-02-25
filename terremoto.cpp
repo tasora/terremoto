@@ -279,6 +279,7 @@ int main(int argc, char* argv[])
 
 	// Pointers to some objects that will be plotted, for future use.
 	ChSharedPtr<ChBody> plot_brick_1;
+	ChSharedPtr<ChBody> plot_brick_2;
 	ChSharedPtr<ChBody> plot_table;
 
 	plot_table = tableBody; // others will be hooked later.
@@ -464,6 +465,7 @@ int main(int argc, char* argv[])
 
 		ChCoordsys<> cog_topBeam(ChVector<>(2.25, 3.875, 0));
 		topBeam->SetCoord(cog_topBeam);
+		plot_brick_2 = topBeam;
 
 		mphysicalSystem.Add(topBeam);
 
@@ -887,6 +889,7 @@ int main(int argc, char* argv[])
 	ChStreamOutAsciiFile data_earthquake_y_NB("data_earthquake_y_NB.dat");
 	ChStreamOutAsciiFile data_table("data_table.dat");
 	ChStreamOutAsciiFile data_brick_1("data_brick_1.dat");
+	ChStreamOutAsciiFile data_brick_2("data_brick_2.dat");
 
 
 	// 
@@ -954,6 +957,20 @@ int main(int argc, char* argv[])
 						<< rel_motion.GetPos_dtdt().x << " "
 						<< rel_motion.GetPos_dtdt().y << " "
 						<< rel_motion.GetPos_dtdt().z << "\n";
+
+			ChFrameMoving<> rel_motion_2;
+			plot_table->TransformParentToLocal(plot_brick_2->GetFrame_REF_to_abs(), rel_motion_2);
+
+			data_brick_2 << mphysicalSystem.GetChTime() << " "
+				<< rel_motion_2.GetPos().x - brick_initial_displacement.x << " "
+				<< rel_motion_2.GetPos().y - brick_initial_displacement.y << " "
+				<< rel_motion_2.GetPos().z - brick_initial_displacement.z << " "
+				<< rel_motion_2.GetPos_dt().x << " "
+				<< rel_motion_2.GetPos_dt().y << " "
+				<< rel_motion_2.GetPos_dt().z << " "
+				<< rel_motion_2.GetPos_dtdt().x << " "
+				<< rel_motion_2.GetPos_dtdt().y << " "
+				<< rel_motion_2.GetPos_dtdt().z << "\n";
 			
 			// end plotting data logout
 		}
