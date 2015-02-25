@@ -251,8 +251,8 @@ int main(int argc, char* argv[])
 	linkEarthquake->Initialize(tableBody, floorBody, ChCoordsys<>(ChVector<>(0,0,0)) );
 
 	double time_offset = 5.0; // begin earthquake after 5 s to allow stabilization of blocks after creation.
-	double ampl_factor = 16; // use lower or greater to scale the earthquake.
-	bool   use_barrier = true; // if true, the Barrier data files are used, otherwise the No_Barrier datafiles are used
+	double ampl_factor = 7; // use lower or greater to scale the earthquake.
+	bool   use_barrier = false; // if true, the Barrier data files are used, otherwise the No_Barrier datafiles are used
 
 	// Define the horizontal motion, on x:
 	//ChFunction_Sine* mmotion_x = new ChFunction_Sine(0,1.6,0.5); // phase freq ampl, carachteristics of input motion
